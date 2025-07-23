@@ -4,25 +4,13 @@
   <title>ระบบรายงานพิกัด</title>
   <meta charset="utf-8" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    #map {
-      height: 400px;
-      width: 100%;
-      margin-bottom: 15px;
-    }
-    input, textarea, button {
-      margin-bottom: 10px;
-      width: 100%;
-      padding: 8px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #map { height: 400px; width: 100%; margin-bottom: 15px; }
+    input, textarea, button { margin-bottom: 10px; width: 100%; padding: 8px; }
   </style>
 </head>
 <body>
   <h2>ฟอร์มรายงานพิกัดแปลงที่ดิน</h2>
-
   <form id="reportForm">
     <label>ชื่อ:</label>
     <input type="text" name="name" required />
@@ -31,9 +19,6 @@
     <textarea name="problem" rows="3"></textarea>
 
     <label><input type="checkbox" name="no_issue" /> ไม่มีปัญหา รกหรือน้ำท่วม</label>
-
-    <label>แนบรูปภาพ:</label>
-    <input type="file" name="image" accept="image/*" />
 
     <label>พิกัด:</label>
     <input type="text" name="latlng" id="latlng" readonly required />
@@ -44,8 +29,7 @@
   </form>
 
   <script>
-    let map;
-    let marker;
+    let map, marker;
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -60,21 +44,43 @@
           position: latlng,
           map: map,
         });
-        document.getElementById("latlng").value = ${latlng.lat().toFixed(6)}, ${latlng.lng().toFixed(6)};
+        document.getElementById("latlng").value = latlng.lat().toFixed(6) + ", " + latlng.lng().toFixed(6);
       });
     }
 
     document.getElementById("reportForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
-      alert("ส่งข้อมูลเรียบร้อย (ยังไม่เชื่อม Google Sheets)");
-      this.reset();
-      if (marker) marker.setMap(null);
-      document.getElementById("latlng").value = "";
+      const form = e.target;
+      const data = {
+        name: form.name.value,
+        problem: form.problem.value,
+        no_issue: form.no_issue.checked ? "Yes" : "No",
+        latlng: form.latlng.value
+      };
+
+      fetch("https://script.google.com/macros/s/YOUR_WEBAPP_URL/exec", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.text())
+      .then(result => {
+        alert("ส่งข้อมูลเรียบร้อย: " + result);
+        form.reset();
+        if (marker) marker.setMap(null);
+        document.getElementById("latlng").value = "";
+      })
+      .catch(err => {
+        console.error(err);
+        alert("ส่งข้อมูลไม่สำเร็จ");
+      });
     });
   </script>
 
-  <script async
+  <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDo19Y656oPz9kcU7qsnjraw8IgmTpkjm4&callback=initMap">
   </script>
 </body>
