@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ทดสอบส่งข้อมูลไป Google Sheets</title>
+</head>
+<body>
+  <h1>ทดสอบส่ง</h1>
+  <form id="form">
+    <input type="text" name="name" placeholder="ชื่อ" required>
+    <input type="text" name="message" placeholder="ข้อความ" required>
+    <button type="submit">ส่ง</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const jsonData = {
+        name: formData.get('name'),
+        message: formData.get('message')
+      };
+
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbyhXW3ps0C7_6_8uGHYsO2UJ4SJAPsv5WLRdn-5O6B_OenGO_HQbQPNzl99nexWXCb5/exec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(jsonData)
+        });
+
+        const result = await res.json();
+        alert('ส่งสำเร็จ: ' + result.status);
+      } catch (err) {
+        console.error(err);
+        alert('เกิดข้อผิดพลาด: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
