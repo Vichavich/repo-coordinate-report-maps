@@ -1,0 +1,449 @@
+<!DOCTYPE html>  
+<html>
+<head>
+  <title>ระบบรายงานพิกัด</title>
+  <meta charset="utf-8" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px auto;
+      max-width: 520px;
+      background: #f0f8ff;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      color: #2c3e50;
+    }
+    h2 {
+      text-align: center;
+      color: #1a5276;
+      margin-bottom: 35px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 1.7rem;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+      color: #34495e;
+    }
+    /* ข้อความแดงกำกับหัวข้อ */
+    .label-note {
+      color: #c0392b;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-left: 6px;
+      user-select: none;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      border: 1.8px solid #a3b5c6;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+      background: #ffffff;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+    }
+    input[type="text"]:focus, textarea:focus {
+      border-color: #2874a6;
+      outline: none;
+      box-shadow: 0 0 6px rgba(40,116,166,0.5);
+      background: #fefefe;
+    }
+    #map {
+      height: 350px;
+      width: 100%;
+      margin-bottom: 6px;
+      border-radius: 12px;
+      border: 2px solid #a3b5c6;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+    }
+    /* ข้อความแดงใต้แผนที่ */
+    #map-note {
+      font-size: 0.9rem;
+      color: #c0392b;
+      font-weight: 600;
+      margin-bottom: 20px;
+      user-select: none;
+    }
+    button {
+      width: 100%;
+      background-color: #2874a6;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.4s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 10px rgba(40,116,166,0.5);
+      margin-bottom: 12px;
+    }
+    button:hover {
+      background-color: #1b4f72;
+      box-shadow: 0 6px 16px rgba(27,79,114,0.7);
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 14px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      color: #34495e;
+      position: relative;
+    }
+    .checkbox-container input[type="checkbox"],
+    .checkbox-container input[type="radio"] {
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2.5px solid #2874a6;
+      border-radius: 7px;
+      margin-right: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      background-color: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .checkbox-container input[type="radio"] {
+      border-radius: 50%;
+    }
+    .checkbox-container input[type="checkbox"]:checked,
+    .checkbox-container input[type="radio"]:checked {
+      background-color: #2874a6;
+      border-color: #2874a6;
+      box-shadow: 0 0 7px #2874a6;
+    }
+    .checkbox-container input[type="checkbox"]:checked::after,
+    .checkbox-container input[type="radio"]:checked::after {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 9px;
+      width: 5px;
+      height: 11px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    #delegate_options {
+      margin-left: 30px;
+      margin-top: -12px;
+      margin-bottom: 18px;
+      color: #34495e;
+    }
+    #delegate_options > label {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    #delegate_options div {
+      font-size: 0.9em;
+      color: #c0392b;
+      margin-left: 24px;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* Success popup styling */
+    #successPopup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #2ecc71;
+      color: white;
+      padding: 22px 35px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      border-radius: 12px;
+      box-shadow: 0 8px 18px rgba(46,204,113,0.7);
+      z-index: 9999;
+      animation: popupFadeIn 0.5s ease forwards, popupFadeOut 0.5s ease 2.5s forwards;
+    }
+    @keyframes popupFadeIn {
+      from {opacity: 0; transform: translateX(-50%) translateY(-20px);}
+      to {opacity: 1; transform: translateX(-50%) translateY(0);}
+    }
+    @keyframes popupFadeOut {
+      from {opacity: 1; transform: translateX(-50%) translateY(0);}
+      to {opacity: 0; transform: translateX(-50%) translateY(-20px);}
+    }
+
+    /* รูปตัวอย่างและข้อความใต้รูป */
+    #example-images {
+      margin-top: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #example-images img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    #example-images .caption {
+      color: #c0392b;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 6px;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>ระบบรายงานเพื่อช่วยตรวจสอบสภาพพื้นที่ก่อนการรังวัด</h2>
+  <form id="reportForm">
+    <div class="form-group">
+      <label for="name">ชื่อเจ้าของที่ดิน:</label>
+      <input type="text" name="name" id="name" required />
+    </div>
+
+    <div class="form-group">
+      <label for="title_deed">
+        เลขโฉนดที่ดิน
+        <span class="label-note">*สำคัญ ดูในใบโฉนดที่ดินให้ถูกต้อง!</span>
+      </label>
+      <input type="text" name="title_deed" id="title_deed" placeholder="เช่น 1234567890" required />
+    </div>
+
+    <div class="form-group">
+      <label for="province">จังหวัด:</label>
+      <input type="text" name="province" id="province" placeholder="เช่น กรุงเทพมหานคร" required />
+    </div>
+
+    <div class="form-group">
+      <label for="district">อำเภอ:</label>
+      <input type="text" name="district" id="district" placeholder="เช่น พระนคร" required />
+    </div>
+
+    <div class="form-group">
+      <label for="subdistrict">ตำบล:</label>
+      <input type="text" name="subdistrict" id="subdistrict" placeholder="เช่น บางขุนพรหม" required />
+    </div>
+
+    <div class="form-group">
+      <label>ปัญหา:</label>
+      <label class="checkbox-container">
+        <input type="checkbox" name="problem" value="รก" />
+        รก
+      </label>
+      <label class="checkbox-container">
+        <input type="checkbox" name="problem" value="น้ำท่วม" />
+        น้ำท่วม
+      </label>
+
+      <!-- เพิ่มรูปตัวอย่างและข้อความกำกับ -->
+      <div id="example-images">
+        <img src="https://raw.githubusercontent.com/Vichavich/repo-coordinate-report-maps/refs/heads/main/dfbaa874-46b1-4003-acea-a0212df98fda.jfif" alt="ตัวอย่างภาพแปลงที่ดินรก น้ำท่วม" />
+        <div class="caption">*ตัวอย่างภาพแปลงที่ดินรก,น้ำท่วมไม่สามารถทำการรังวัดได้</div>
+      </div>
+    </div>
+
+    <label class="checkbox-container">
+      <input type="checkbox" name="no_issue" id="no_issue" />
+      ไม่มีปัญหาแปลงที่ดินรกหรือน้ำท่วม
+    </label>
+
+    <div class="form-group">
+      <label for="latlng">พิกัด:</label>
+      <input type="text" name="latlng" id="latlng" readonly required />
+    </div>
+
+    <div id="map"></div>
+    
+    <!-- ปุ่มระบุตำแหน่งปัจจุบัน เพิ่มตามคำขอ -->
+    <button type="button" id="btnLocate">ระบุตำแหน่งปัจจุบัน</button>
+
+    <div id="map-note">*กดระบุตำแหน่งปัจจุบันของท่านต่อเมื่อท่านยืนอยู่ในแปลงเท่านั้น และตรวจสอบให้แน่ใจว่าใช่แปลงของท่าน</div>
+
+    <div class="form-group">
+      <label>สถานะผู้นำรังวัด:</label>
+      <label class="checkbox-container">
+        <input type="radio" name="survey_status" value="เจ้าของที่มานำรังวัด" />
+        เจ้าของที่มานำรังวัด ณ วันที่นัดรังวัด
+      </label>
+      <label class="checkbox-container">
+        <input type="radio" id="representative" name="survey_status" value="มอบหมายคนอื่นมาแทน" />
+        เจ้าของที่มอบหมายให้คนอื่นมาแทน
+      </label>
+      <div id="delegate_options" style="display: none;">
+        <label class="checkbox-container">
+          <input type="radio" name="delegation_status" value="มีใบมอบหมาย" />
+          มีใบมอบหมาย
+        </label>
+        <label class="checkbox-container">
+          <input type="radio" name="delegation_status" value="ไม่มีใบมอบหมาย" />
+          ไม่มีใบมอบหมาย
+          <div>
+            * ถ้าถึงวันรังวัดมอบหมายให้คนอื่นมาแทนแต่ไม่มีใบมอบต้องงดรังวัด
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <button type="submit">ส่งข้อมูล</button>
+    <p style="color: #c0392b; font-weight: 600; margin-top: 8px;">
+      *กรุณาใส่ข้อมูลให้ถูกต้องเพื่อประโยชน์ของตัวท่านเอง
+    </p>
+  </form>
+
+  <div id="successPopup">ส่งสำเร็จ :) ขอบคุณที่ใช้บริการครับ!</div>
+
+  <script>
+    let map, marker;
+
+    // แปลง lat,lng เป็น UTM (Zone 47N) สำหรับไทย
+    function latLngToUTM(lat, lng) {
+      const a = 6378137.0;
+      const f = 1 / 298.257223563;
+      const k0 = 0.9996;
+      const zoneNumber = 47;
+      const lonOrigin = (zoneNumber - 1) * 6 - 180 + 3;
+
+      const latRad = lat * Math.PI / 180;
+      const lonRad = lng * Math.PI / 180;
+      const lonOriginRad = lonOrigin * Math.PI / 180;
+
+      const e = Math.sqrt(f * (2 - f));
+      const N = a / Math.sqrt(1 - Math.pow(e * Math.sin(latRad), 2));
+      const T = Math.pow(Math.tan(latRad), 2);
+      const C = Math.pow(e, 2) / (1 - Math.pow(e, 2)) * Math.pow(Math.cos(latRad), 2);
+      const A = Math.cos(latRad) * (lonRad - lonOriginRad);
+
+      const M = a * (
+        (1 - Math.pow(e, 2)/4 - 3*Math.pow(e,4)/64 - 5*Math.pow(e,6)/256) * latRad
+        - (3*Math.pow(e,2)/8 + 3*Math.pow(e,4)/32 + 45*Math.pow(e,6)/1024) * Math.sin(2*latRad)
+        + (15*Math.pow(e,4)/256 + 45*Math.pow(e,6)/1024) * Math.sin(4*latRad)
+        - (35*Math.pow(e,6)/3072) * Math.sin(6*latRad)
+      );
+
+      const easting = k0 * N * (A + (1 - T + C)*Math.pow(A,3)/6 + (5 - 18*T + T*T + 72*C - 58*Math.pow(e,2)/(1 - Math.pow(e,2)))*Math.pow(A,5)/120) + 500000.0;
+      let northing = k0 * (M + N * Math.tan(latRad) * (A*A/2 + (5 - T + 9*C + 4*C*C)*Math.pow(A,4)/24 + (61 - 58*T + T*T + 600*C - 330*Math.pow(e,2)/(1 - Math.pow(e,2)))*Math.pow(A,6)/720));
+      if (lat < 0) {
+        northing += 10000000.0;
+      }
+
+      return { easting, northing };
+    }
+
+    function initMap() {
+      const defaultPos = { lat: 13.736717, lng: 100.523186 };
+
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultPos,
+        zoom: 14,
+      });
+
+      map.addListener("click", (e) => {
+        const latlng = e.latLng;
+        if (marker) marker.setMap(null);
+        marker = new google.maps.Marker({ position: latlng, map });
+        const utm = latLngToUTM(latlng.lat(), latlng.lng());
+        document.getElementById("latlng").value = utm.easting.toFixed(2) + ", " + utm.northing.toFixed(2);
+      });
+    }
+
+    // ปุ่มระบุตำแหน่งปัจจุบัน
+    document.getElementById("btnLocate").addEventListener("click", () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userPos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            map.setCenter(userPos);
+            if (marker) marker.setMap(null);
+            marker = new google.maps.Marker({ position: userPos, map });
+            const utm = latLngToUTM(userPos.lat, userPos.lng);
+            document.getElementById("latlng").value = utm.easting.toFixed(2) + ", " + utm.northing.toFixed(2);
+          },
+          () => {
+            alert("ไม่สามารถเข้าถึงตำแหน่งได้ กรุณาเปิด GPS หรืออนุญาตการเข้าถึงตำแหน่ง");
+          }
+        );
+      } else {
+        alert("เบราว์เซอร์ไม่รองรับ Geolocation");
+      }
+    });
+
+    // แสดง/ซ่อนตัวเลือกใบมอบหมาย
+    const surveyRadios = document.querySelectorAll('input[name="survey_status"]');
+    surveyRadios.forEach(radio => {
+      radio.addEventListener("change", () => {
+        const delegateDiv = document.getElementById("delegate_options");
+        delegateDiv.style.display = (document.getElementById("representative").checked) ? "block" : "none";
+      });
+    });
+
+    function showSuccessPopup() {
+      const popup = document.getElementById("successPopup");
+      popup.style.display = "block";
+      setTimeout(() => {
+        popup.style.display = "none";
+      }, 3000);
+    }
+
+    document.getElementById("reportForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const form = e.target;
+
+      const problems = [];
+      form.querySelectorAll('input[name="problem"]:checked').forEach(cb => problems.push(cb.value));
+
+      // แยก easting กับ northing จาก latlng input
+      const latlngParts = form.latlng.value.split(",");
+      const easting = latlngParts[0] ? latlngParts[0].trim() : "";
+      const northing = latlngParts[1] ? latlngParts[1].trim() : "";
+
+      const data = {
+        name: form.name.value.trim(),
+        title_deed: form.title_deed.value.trim(),
+        province: form.province.value.trim(),
+        district: form.district.value.trim(),
+        subdistrict: form.subdistrict.value.trim(),
+        problem: problems.join(", "),
+        no_issue: form.no_issue.checked,
+        easting: easting,
+        northing: northing,
+        survey_status: form.survey_status.value || "",
+        delegation_status: form.delegation_status ? form.delegation_status.value : ""
+      };
+
+      try {
+        const response = await fetch("https://api.sheetbest.com/sheets/300c615c-daec-40c1-a7de-6f3ee87f73d1", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        if (response.ok) {
+          showSuccessPopup();
+          form.reset();
+          document.getElementById("latlng").value = "";
+          if (marker) marker.setMap(null);
+          document.getElementById("delegate_options").style.display = "none";
+        } else {
+          alert("เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่");
+        }
+      } catch (error) {
+        alert("เกิดข้อผิดพลาด: " + error.message);
+      }
+    });
+  </script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDo19Y656oPz9kcU7qsnjraw8IgmTpkjm4&callback=initMap" async defer></script>
+</body>
+</html>
